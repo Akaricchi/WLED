@@ -15,9 +15,38 @@ static volatile int8_t saveLedmap = -1;
 static char quickLoad[9];
 static char saveName[33];
 static bool includeBri = true, segBounds = true, selectedOnly = false, playlistSave = false;;
+static unsigned long presetsCachedTime;
+static uint8_t *presetsCached;
+static size_t presetsCachedSize;
 
 static const char *getFileName(bool persist = true) {
   return persist ? "/presets.json" : "/tmp.json";
+}
+
+const uint8_t *getPresetsJson(size_t *size) {
+  DEBUG_PRINTF("getPresetsJson: Modified %lu, cached %lu\n", presetsModifiedTime, presetsCachedTime);
+
+  if (presetsModifiedTime != presetsCachedTime) {
+    if (presetsCached) {
+      DEBUG_PRINTF("getPresetsJson: cache invalidated\n");
+      free(presetsCached);
+      presetsCached = NULL;
+    }
+  }
+
+  if (!presetsCached) {
+    DEBUG_PRINTF("getPresetsJson: no cache, reading from FS\n");
+    presetsCachedTime = presetsModifiedTime;
+    File file = WLED_FS.open(getFileName(true), "r");
+    presetsCachedSize = file.size();
+    presetsCached = (uint8_t*)ps_malloc(presetsCachedSize + 1);
+    file.read(presetsCached, presetsCachedSize);
+    presetsCached[presetsCachedSize] = 0;
+    file.close();
+  }
+
+  *size = presetsCachedSize;
+  return presetsCached;
 }
 
 static void doSaveState() {

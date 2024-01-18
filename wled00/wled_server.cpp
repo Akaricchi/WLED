@@ -384,6 +384,15 @@ void initServer()
     request->send(response);
   });
 
+  server.on("/presets.json", HTTP_GET, [](AsyncWebServerRequest *request) {
+    size_t psize;
+    const uint8_t *presets = getPresetsJson(&psize);
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "application/json", presets, psize);
+    // response->addHeader(FPSTR(s_content_enc),"gzip");
+    setStaticContentCacheHeaders(response);
+    request->send(response);
+  });
+  
   #ifdef WLED_ENABLE_WEBSOCKETS
   server.addHandler(&ws);
   #endif

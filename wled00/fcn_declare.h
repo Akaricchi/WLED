@@ -217,6 +217,7 @@ void savePreset(byte index, const char* pname = nullptr, JsonObject saveobj = Js
 inline void saveTemporaryPreset() {savePreset(255);};
 void deletePreset(byte index);
 bool getPresetName(byte index, String& name);
+const uint8_t *getPresetsJson(size_t *size);
 
 //remote.cpp
 void handleRemote();
